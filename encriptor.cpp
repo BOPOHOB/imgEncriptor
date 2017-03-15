@@ -1,6 +1,7 @@
 #include "encriptor.h"
 #include <QDebug>
 #include <QColor>
+#include <cassert>
 
 Encriptor::Encriptor()
 {
@@ -42,6 +43,27 @@ QByteArray Encriptor::toByteArray(const QBitArray& bits)
     return bytes;
 }
 
+std::vector<quint32> Encriptor::encript(std::vector<quint32> arr, const QString& script)
+{
+    const QByteArray data(script.toLocal8Bit());
+    quint32 length(data.length());
+    QByteArray lengthArray;
+    lengthArray.push_back(static_cast<quint8>(length       % 0x100));
+    lengthArray.push_back(static_cast<quint8>(length >>  8 % 0x100));
+    lengthArray.push_back(static_cast<quint8>(length >> 16 % 0x100));
+    lengthArray.push_back(static_cast<quint8>(length >> 24 % 0x100));
+
+    lengthArray.append(data);
+    const QBitArray mask(toBitArray(lengthArray));
+    const std::vector<quint32>::size_type size(arr.size());
+    for (int i(0); mask.size() > i; ++i) {
+        const size_t layout(i / size);
+        quint32& val(arr[i % size]);
+        val = (quint8(mask[i]) << layout) | (val & ~(quint8(1) << layout));
+    }
+    return arr;
+}
+
 QImage Encriptor::encript(const QImage& img, const QString& script)
 {
     QImage result(img);
@@ -51,18 +73,22 @@ QImage Encriptor::encript(const QImage& img, const QString& script)
     lengthArray.push_back(static_cast<quint8>(length       % 0x100));
     lengthArray.push_back(static_cast<quint8>(length >>  8 % 0x100));
     lengthArray.push_back(static_cast<quint8>(length >> 16 % 0x100));
+    assert(length >> 24 == 0);
     lengthArray.append(data);
     QBitArray mask(toBitArray(lengthArray));
     int curPixel(0);
     if (mask.size() % 3) {
         mask.resize(mask.size() / 3 * 3 + 3);
     }
+    const int size(img.width() * img.height());
     for (int i(0); mask.size() > i; i += 3, ++curPixel) {
-        const QPoint pixPoint(curPixel % result.width(), curPixel / result.width());
+        const int innerPixel(curPixel % size);
+        const int layout(curPixel / size);
+        const QPoint pixPoint(innerPixel % result.width(), innerPixel / result.width());
         QRgb cur(result.pixel(pixPoint));
-        cur = qRgb(setBit(  qRed(cur), mask[i    ], 0),
-                   setBit(qGreen(cur), mask[i + 1], 0),
-                   setBit( qBlue(cur), mask[i + 2], 0));
+        cur = qRgb(setBit(  qRed(cur), mask[i    ], layout),
+                   setBit(qGreen(cur), mask[i + 1], layout),
+                   setBit( qBlue(cur), mask[i + 2], layout));
         result.setPixel(pixPoint, cur);
     }
     return result;

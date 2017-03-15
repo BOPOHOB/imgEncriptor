@@ -10,7 +10,9 @@ QT += core gui widgets
 SOURCES += main.cpp \
     filenameedit.cpp \
     face.cpp \
-    encriptor.cpp
+    encriptor.cpp \
+    wav.cpp \
+    wavheader.cpp
 
 RESOURCES += \
     res.qrc
@@ -18,4 +20,6 @@ RESOURCES += \
 HEADERS += \
     filenameedit.h \
     face.h \
-    encriptor.h
+    encriptor.h \
+    wav.h \
+    wavheader.h

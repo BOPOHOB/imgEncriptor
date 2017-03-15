@@ -31,7 +31,7 @@ Face::Face(QWidget *parent)
         if (img.isNull()) {
             return;
         }
-        image->setPixmap(QPixmap::fromImage(Encriptor::encript(img.scaled(QSize(500,500), Qt::KeepAspectRatio), editor->toPlainText())));
+        image->setPixmap(QPixmap::fromImage(Encriptor::encript(img.scaled(QSize(200,200), Qt::KeepAspectRatio, Qt::SmoothTransformation), editor->toPlainText())));
     };
     connect(imagePicker, &FileNameEdit::fileNameChanged, slot);
     connect(editor, &QTextEdit::textChanged, slot);

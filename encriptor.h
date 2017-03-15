@@ -16,6 +16,7 @@ class Encriptor
     Encriptor();
 public:
 
+    static std::vector<quint32> encript(std::vector<quint32> data, const QString& script);
     static QImage encript(const QImage&, const QString&);
     static QString decript(const QImage&);
 };
